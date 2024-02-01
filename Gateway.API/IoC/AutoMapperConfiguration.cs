@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using Gateway.API.Models;
-using Gateway.API.Profiles;
 
 namespace Gateway.API.IoC
 {

@@ -3,6 +3,7 @@ using Gateway.API.Responses;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Net.Client;
 using Service.Grpc;
+using System.Text.Json;
 
 namespace Gateway.API.Services
 {
@@ -21,19 +22,18 @@ namespace Gateway.API.Services
 
                 using var channel = GrpcChannel.ForAddress("https://localhost:7269");
                 var grpcClient = new DataService.DataServiceClient(channel);
-                var result = await grpcClient.GetAllDataAsync(new Empty());
-                return new PersonsResponse { Items = _mapper.Map<List<Models.Person>>(result.Items) };
+                var grpcServiceResult = await grpcClient.GetAllDataAsync(new Empty());
+                return new PersonsResponse { Items = _mapper.Map<List<Models.Person>>(grpcServiceResult.Items) };
             }
-            // fetch data from rest service (e.g http call)
             else
             {
                 using var httpClient = new HttpClient();
-                var streamResult = await httpClient.GetStreamAsync("https://localhost:7229/data");
-                var result = System.Text.Json.JsonSerializer.Deserialize<List<Models.Person>>(streamResult, new System.Text.Json.JsonSerializerOptions
+                var restServiceStreamResult = await httpClient.GetStreamAsync("https://localhost:7229/data");
+                var restServiceResult = JsonSerializer.Deserialize<List<Models.Person>>(restServiceStreamResult, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
-                return new PersonsResponse { Items = result };
+                return new PersonsResponse { Items = restServiceResult };
             }
         }
     }

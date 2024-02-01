@@ -1,24 +1,26 @@
-﻿using System.Diagnostics;
+﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
-try
+var summary = BenchmarkRunner.Run<RestVsGrpcBenchMarker>();
+Console.WriteLine(summary);
+
+
+
+[MemoryDiagnoser]
+public class RestVsGrpcBenchMarker
 {
-    var total = 0;
-    for(int i = 0; i < 1000; i++)
+    [Benchmark]
+    [IterationCount(200)]
+    public async Task Rest()
     {
-        var sw = new Stopwatch();
-
         using var httpClient = new HttpClient();
-        sw.Start();
         var response = await httpClient.GetStringAsync("https://localhost:7022/persons?requested-from-grpc=false");
-        sw.Stop();
-        Console.WriteLine(sw.ElapsedMilliseconds);
-        total += (int)sw.ElapsedMilliseconds;
-
     }
-    Console.WriteLine($"Avg. { total / 1000}");
-    Console.ReadKey();
-}
-catch(Exception ex)
-{
-
+    [Benchmark]
+    [IterationCount(200)]
+   public async Task Grpc()
+    {
+        using var httpClient = new HttpClient();
+        var response = await httpClient.GetStringAsync("https://localhost:7022/persons?requested-from-grpc=true");
+    }
 }
